@@ -32,7 +32,7 @@ from keras.optimizers import Adam
 # since we are using stateful rnn tsteps can be set to 1
 tsteps = 1
 batch_size = 25
-epochs = 3000
+epochs = 301
 # number of elements ahead that are used to make the prediction
 lahead = 2000
 
@@ -52,8 +52,8 @@ def gen_cosine_amp(amp=80, period=200, x0=0, xn=5000, step=1, k=0.0001):
     cos = np.zeros(((xn - x0) * step, 1, 1))
     for i in range(len(cos)):
         idx = x0 + i * step
-        cos[i, 0, 0] = amp * (np.cos(2 * np.pi * idx / period)* np.exp(-0.0005 * idx)+0.3*np.sin(2 * np.pi * idx / period/1.53)+0.5*np.sin(2 * np.pi * idx / period/9.53)*np.random.uniform(-1.0, +1.0))
-        #cos[i, 0, 0] = amp * (np.cos(2 * np.pi * idx / period))
+        #cos[i, 0, 0] = amp * (np.cos(2 * np.pi * idx / period)* np.exp(-0.0005 * idx)+0.3*np.sin(2 * np.pi * idx / period/1.53)+0.5*np.sin(2 * np.pi * idx / period/9.53)*np.random.uniform(-1.0, +1.0))
+        cos[i, 0, 0] = amp * (np.cos(2 * np.pi * idx / period))
         cos[i, 0, 0] = cos[i, 0, 0]* np.exp(-k * idx)
     return cos
 
@@ -62,9 +62,11 @@ cos = gen_cosine_amp()
 print('Input shape:', cos.shape)
 
 expected_output = np.zeros((len(cos), 1))
+output = np.zeros((len(cos), 1))
 for i in range(len(cos) - lahead):
     expected_output[i, 0] = cos[i]  #np.mean(cos[i + 1:i + 1 + 1])  #lahead =1
 expected_output1 = np.zeros((len(cos), 1))
+output1 = np.zeros((len(cos), 1))
 for i in range(len(cos)):
     expected_output1[i, 0] = cos[i]  #np.mean(cos[i + 1:i + 1 + 1])  #lahead =1    
 
@@ -76,7 +78,8 @@ model.add(LSTM(100,
                input_shape=(tsteps, 1),
                batch_size=batch_size,
                return_sequences=False,
-               stateful=True))
+               stateful=True,
+              dropout=0.0))
 """
 model.add(LSTM(50,
                return_sequences=False,
@@ -86,7 +89,7 @@ model.add(Dense(1))
 opt=Adam(lr=0.0001, beta_1=0.5, beta_2=0.999, epsilon=1e-08, decay=0.)
 model.compile(loss='mse', optimizer=opt)   #'rmsprop')
 model.summary()
-#model.load_weights('params_model_lstm_epoch_200.hdf5')
+#model.load_weights('params_model_lstm_epoch_2900.hdf5')
 
 print('Training')
 for i in range(0,epochs):
@@ -110,7 +113,7 @@ for i in range(0,epochs):
     #model.save_weights(
     #      'params_model_lstm_epoch_{0:03d}.hdf5'.format(i), True)
     
-    if i%100==0:
+    if i%10==0:
         # save weights every epoch
         model.save_weights(
               'params_model_lstm_epoch_{0:03d}.hdf5'.format(i), True)
@@ -133,12 +136,28 @@ for i in range(0,epochs):
         #plt.xlim(0, 260)
 
         plt.title('Expected')
-        plt.subplot(3, 1, 3)
+        plt.subplot(3, 1, 2)
         plt.plot(predicted_output)
         plt.ylim(-120, 120)
         #plt.ylim(-25, 25)
         #plt.xlim(0, 260)
         plt.title('Predicted')
+        #plt.pause(3)
+        #plt.savefig('plot_epoch_{0:03d}_lstm.png'.format(i), dpi=60)
+        #plt.close()
+        
+        
+        plt.subplot(3, 1, 3)
+        for j in range(len(cos)):
+            output1[j, 0]=expected_output1[j, 0]/expected_output1[np.argmax(expected_output1)] 
+        plt.plot(output1)
+        #plt.ylim(-120, 120)
+        plt.subplot(3, 1, 3)
+        for j in range(len(cos)):
+            output[j, 0]=predicted_output[j, 0]/predicted_output[np.argmax(predicted_output)] 
+        plt.plot(output)
+        #plt.ylim(-120, 120)
+        
         plt.pause(3)
         plt.savefig('plot_epoch_{0:03d}_lstm.png'.format(i), dpi=60)
         plt.close()
