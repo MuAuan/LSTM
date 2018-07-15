@@ -103,3 +103,74 @@ plt.savefig('plot_thomegavst.png', dpi=60)
 plt.close()
 
 
+def lorenz(var, t, p, r, b):
+    #{\frac  {dx}{dt}}=-px+py
+    #{\frac  {dy}{dt}}=-xz+rx-y
+    #{\frac  {dz}{dt}}=xy-bz
+    """
+    var = [x,y,z, x_dot,y_dot,z_dot]
+    dx/dt = -px+py
+    dy/dt = -xz+rx-y
+    dz/dt = xy-bz
+    """
+    x_dot = -p*var[0]+p*var[1]
+    y_dot = -var[0]*var[2]+r*var[0]-var[1]
+    z_dot = var[0]*var[1]-b*var[2]
+    #x_dot= -p*x_dot +p*y_dot
+    #y_dot= -x_dot*var[2] - var[0]*z_dot +r*x_dot -y_dot
+    #z_dot= x_dot*var[1] + var[0]*y_dot -b*z_dot
+    return x_dot,y_dot,z_dot  #_dot,py_dot,pz_dot
+
+p = 10
+b = 8/3
+r = 28
+y0 = [0.1,0, 0.0]  #,0]
+t = np.linspace(0, 20, 3001)
+sol = odeint(lorenz, y0, t, args=(p, r, b))
+
+x, y, z = sol.T[0], sol.T[1], sol.T[2]
+plt.plot(x, y, ".", markersize=4)
+plt.pause(3)
+plt.savefig('plot_xy.png', dpi=60)
+plt.close()
+
+plt.plot(y, z, ".", markersize=4)
+plt.pause(3)
+plt.savefig('plot_yz.png', dpi=60)
+plt.close()
+
+plt.plot(z, x, ".", markersize=4)
+plt.pause(3)
+plt.savefig('plot_zx.png', dpi=60)
+plt.close()
+
+#plt.savefig('plot_xyyzzx.png', dpi=60)
+#plt.close()
+
+plt.plot(t, sol[:, 0], 'b', label='x(t)')
+plt.xlabel('t')
+plt.grid()
+plt.legend(loc='best')
+plt.savefig('plot_xt.png', dpi=60)
+plt.pause(3)
+plt.close()
+
+plt.plot(t, sol[:, 1], 'g', label='y(t)')
+plt.xlabel('t')
+plt.grid()
+plt.legend(loc='best')
+plt.savefig('plot_yt.png', dpi=60)
+plt.pause(3)
+plt.close()
+
+plt.plot(t, sol[:, 2], 'g', label='z(t)')
+plt.xlabel('t')
+plt.grid()
+plt.legend(loc='best')
+plt.savefig('plot_zt.png', dpi=60)
+plt.pause(3)
+plt.close()
+
+#plt.savefig('plot_xyzvst.png', dpi=60)
+#plt.close()
+
